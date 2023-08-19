@@ -1,0 +1,329 @@
+---
+title: "Website Satisfactory Survey"
+output: word_document
+date: "2023-03-25"
+---
+```{r}
+install.packages("dplyr")
+install.packages("matrixStats")
+install.packages("stats")
+install.packages("tidyverse")
+install.packages("psych")
+install.packages("plotrix")
+install.packages("ggplot2")
+```
+
+```{r}
+library(plotrix)
+require(Hmisc) 
+library(stats)
+library(matrixStats)
+require(tidyverse)
+require(ggplot2)
+library(psych)
+library(package="corrplot")
+require(dplyr)
+require(GGally)
+library(showtext)
+showtext_auto()
+library(magrittr)
+```
+
+#Import data set 
+```{r}
+survey <- read.csv("D:/Niloofar/SP23/512 - data visualization/AssignmentsProjects-20230204/SemesterProject/website satisfactory survey.csv")
+head(survey)
+attach(survey)
+```
+
+#Data Cleaning
+```{r}
+survey$typography <- round((q1+q2+q3)/3,2)
+survey$color <- round((q4+q5)/2,2)
+survey$content <- round((q6+q7+q8)/3,2)
+survey$interactivity <- round((q9+q10+q11+q12+q13)/5,2)
+survey$navigation <- round((q14+q15+q16+q17+q18)/5,2)
+survey$satisfaction <- round((q19+q20+q21+q22)/4,2)
+survey$trust <- round((q23+q24)/2,2)
+survey$loyality <- round((q25+q26)/2,2)
+head(survey)
+```
+
+```{r}
+#glimpse(survey)
+str(survey)
+
+
+```
+
+#deleting null data
+```{r}
+survey1 <- survey %>% select_at(c(1:5,32:39)) %>% mutate_if(is.character,as.factor)
+summary(survey1)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+is.data.frame(mainperf)
+dim(mainperf)
+```
+````{r}
+mainperf$mth <- as.numeric(mainperf$mth)
+mainperf$rdg <- as.numeric(mainperf$rdg)
+mainperf$wrt <- as.numeric(mainperf$wrt)
+mainperf$rcth <- as.factor(mainperf$rcth)
+mainperf$prtdu <- as.factor(mainperf$prtdu)
+```
+
+```{r}
+str(mainperf)
+```
+
+```{r}
+head(mainperf)
+```
+
+#data clean
+```{r}
+is.character(mainperf$gnd)
+is.factor(mainperf$rcth)
+is.factor(mainperf$prtdu)
+is.character(mainperf$lnch)
+is.character(mainperf$prp)
+is.numeric(mainperf$mth)
+is.numeric(mainperf$rdg)
+is.numeric(mainperf$wrt)
+any(is.na(mainperf))
+```
+
+```{r}
+cor(mainperf[, c(6,7,8)])
+plot(mainperf$wrt , mainperf$rdg, xlab="Writing" , ylab="Reading" )
+plot(mainperf$rdg , mainperf$mth, xlab="Reading" , ylab="Math" )
+plot(mainperf$wrt , mainperf$mth, xlab="Writing" , ylab="Math" )
+```
+
+```{r}
+summary(mainperf)
+```
+
+
+#Encoding prp
+```{r}
+mainperf <- mainperf %>% mutate(prp = ifelse(prp == 'none', 0,100))
+mainperf$prp <- as.integer(mainperf$prp)
+head(mainperf)
+```
+
+```{r}
+tbl1 <-table(mainperf$prp)
+tbl1
+```
+
+```{r}
+barplot(table(mainperf$prp), main= "Students Taking Test Preparation" , xlab="Test Preparation", ylab= "Number of Students")
+barplot(table(mainperf$gnd), main= "Gender of Student" , xlab="Gender", ylab= "Number of Students")
+
+```
+
+```{r}
+ggplot(data=mainperf , mapping=aes(x=mth, y=rdg )) +xlab( "Math") +ylab("Reading") +geom_point()
+
+ggplot(data=mainperf , mapping= aes(x= prtdu , y=prp, fill=wrt)) +geom_tile() +xlab( "Reading") +ylab("Writing")
+
+ggplot(data = mainperf, aes(x = gnd, y = prtdu, fill =Reading)) + geom_tile() +labs(title="Students Gender Vs. Their Parents Education") +xlab( "Gender") + ylab("Parents Education")
+
+```
+
+
+```{r}
+table(mainperf$prtdu, mainperf$prp)
+```
+
+#Gender& courses
+```{r}
+
+ggplot(data=mainperf , mapping= aes(x=gnd , y=rdg))  + geom_boxplot() +xlab( "Gender") +ylab("Reading")
+ggplot(data=mainperf , mapping= aes(x=gnd , y=wrt))  + geom_boxplot() +xlab( "Gender") +ylab("Writing")
+ggplot(data=mainperf , mapping= aes(x=gnd , y=mth))  + geom_boxplot() +xlab( "Gender") +ylab("Math")
+```
+
+#3rd varibles
+```{r}
+fmle <- mainperf%>%filter(gnd=='female')
+mle <- mainperf%>%filter(gnd=='male')
+ggplot()+
+  geom_point(fmle,mapping=aes(mth,rdg,color='female'))+
+  geom_point(mle,mapping=aes(mth, rdg, color='male'))+labs(title='Math and Reading score') +xlab( "Math") +ylab("Reading")
+
+ggplot()+
+  geom_point(fmle,mapping=aes(wrt,rdg,color='female'))+
+  geom_point(mle,mapping=aes(wrt, rdg, color='male'))+labs(title='Writing and Reading score') +xlab( "Writing") +ylab("Reading")
+
+ggplot()+
+  geom_point(fmle,mapping=aes(wrt,mth ,color='female'))+
+  geom_point(mle,mapping=aes(wrt, mth , color='male'))+labs(title='Writing and Math score') +xlab( "Writing") +ylab("Math")
+
+```
+
+#continuous Variable Plotting
+```{r}
+cor <- select_if(mainperf, is.numeric)
+cor
+```
+
+
+#new corplot
+```{r}
+cor(cor)
+corrplot(cor(cor))
+
+```
+
+#pairs
+```{r}
+Math <- mainperf$mth
+Reading <- mainperf$rdg
+Writing <- mainperf$wrt
+Prep <- mainperf$prp
+pairs(data.frame(Math , Reading ,Writing, Prep))
+ggpairs(data.frame(Math , Reading ,Writing,Prep))
+ggpairs(mainperf)
+```
+
+#prp and Courses
+```{r}
+ggplot()+geom_bar(mainperf%>%filter(prp=='0'),mapping = aes(x=mth,fill='0'))+
+  geom_bar(mainperf%>%filter(prp =='1'),mapping=aes(x=mth,fill='1')) +labs(title="Test Prepration for Math ") +xlab( "Math")
+
+ggplot()+geom_bar(mainperf%>%filter(prp=='0'),mapping = aes(x=rdg,fill='0'))+
+  geom_bar(mainperf%>%filter(prp =='1'),mapping=aes(x=rdg,fill='1')) +labs(title="Test Prepration for Reading") +xlab( "Reading")
+
+ggplot()+geom_bar(mainperf%>%filter(prp=='0'),mapping = aes(x=wrt,fill='0'))+
+  geom_bar(mainperf%>%filter(prp =='1'),mapping=aes(x=wrt,fill='1')) +labs(title="Test Prepration for Writing") +xlab( "Writing")
+```
+
+# summary of numeric variables & garphs
+
+# summary of variable statistic & graphs
+
+# Continous Variable 
+```{r}
+cVr1<-lm(prp~prtdu, data=mainperf)
+summary(cVr1)
+```
+```{r}
+cVr2<-lm(prp~rcth, data=mainperf)
+summary(cVr2)
+```
+
+#graph for prp vs prtdu & prp vs rcth
+```{r}
+ggplot(data=mainperf, mapping=aes(x=prp, fill=rcth)) + geom_bar(color="black", position="dodge") + labs(title="Prepration and Race")  +xlab( "Prep") +ylab("Race and  Ethnicity")
+
+ggplot(data=mainperf, mapping=aes(x=prp, fill=prtdu)) + geom_bar(color="black", position="dodge") + labs(title="Prepration and Parent Education")  +xlab( "Prepration") +ylab("Parent Education")
+
+```
+
+#Contingency Table for Categorical Variables
+```{r}
+tbl2 <- table(mainperf$prtdu,mainperf$rcth)
+tbl2
+```
+
+```{r}
+ggplot(mainperf, aes(x=prtdu , y=rcth , fill= prp)) +geom_tile() + xlab( "Parent Education") +ylab("Race and Ethnicity")
+```
+
+
+```{r}
+chisq.test(tbl2)
+```
+
+
+# Analysis of Multiple Linear Regression
+#models
+
+```{r}
+mdl1 <- lm(prp~wrt+rdg+prtdu , data =mainperf)
+anova(mdl1) 
+summary(mdl1)
+```
+
+
+```{r}
+mdl2 <- lm(prp~wrt+rdg+rcth , data =mainperf)
+anova(mdl2) 
+summary(mdl2)
+
+```
+
+
+```{r}
+mdl3 <- lm(prp~wrt+rdg+prtdu+rcth , data =mainperf)
+anova(mdl3) 
+summary(mdl3)
+```
+
+```{r}
+mdl4 <- lm(prp~mth+rdg+wrt+prtdu , data =mainperf)
+anova(mdl4) 
+summary(mdl4)
+```
+
+```{r}
+mdl5 <- lm(prp~mth+rdg+wrt+rcth , data =mainperf)
+anova(mdl5) 
+summary(mdl5)
+```
+
+
+```{r}
+
+mdl6 <- lm(prp~mth+rdg+wrt+rcth+prtdu , data =mainperf)
+anova(mdl6) 
+summary(mdl6)
+```
+
+#outliers
+```{r}
+plot(rstudent(mdl6))
+```
+
+
+#High leverage Points
+```{r}
+plot(mdl6)
+
+```
+
+
+
+#cluster
+````{r}
+clustrperf<- kmeans(mainperf[, c(6,7,8)], 3, nstart=1)
+table(clustrperf$cluster , mainperf$rcth)
+
+clustrperf$cluster <- as.factor(clustrperf$cluster)
+
+ggplot(mainperf, aes(x=rcth , y=wrt, color= clustrperf$cluster)) + geom_point() + labs(title="Cluster of Writing and Race")  +xlab( "Race and  Ethnicity") +ylab("Writing")
+
+
+
+```
+
+
+
+
